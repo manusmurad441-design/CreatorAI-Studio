@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2025-08-27.basil",
-});
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Stripe is not configured");
+  return new Stripe(key, { apiVersion: "2025-02-24.acacia" });
+}
 
 export async function POST() {
   try {
@@ -14,6 +16,8 @@ export async function POST() {
         { status: 500 }
       );
     }
+
+    const stripe = getStripe();
 
     const supabase = await createClient();
     const {

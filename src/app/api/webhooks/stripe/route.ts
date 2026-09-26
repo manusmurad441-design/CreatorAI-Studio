@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2025-08-27.basil",
-});
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("Stripe is not configured");
+  return new Stripe(key, { apiVersion: "2025-02-24.acacia" });
+}
 
 // Service role client for webhook (bypasses RLS)
 const supabaseAdmin = createClient(
@@ -19,6 +21,8 @@ export async function POST(req: NextRequest) {
   if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
     return NextResponse.json({ error: "Missing signature or webhook secret" }, { status: 400 });
   }
+
+  const stripe = getStripe();
 
   let event: Stripe.Event;
   try {
